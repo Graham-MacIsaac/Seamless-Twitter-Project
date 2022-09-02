@@ -4,7 +4,7 @@ layout: default
 
 <h1>Seamless Bay Area Twitter Analysis</h1>
 
-This project is an analyis of how to predict a good tweet from the twitter account of Seamless Bay Area, a public transit nonprofit
+lorem ipsum
 
 <h2> Background </h2>
 
