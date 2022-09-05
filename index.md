@@ -22,13 +22,19 @@ All code was written in Python.
 <h2> Cleaning </h2>
 
 Seamless currently has about 4300 followers on Twitter, and has a relatively active account tweeting on average once per day. Using the Twitter analytics dashboard I collected a CSVs for each month starting in July 2022 and going back to their first tweet in June 2018. These CSV's were turned into pandas dataframes and appended together into a single table.
-
+<br>
 <pre class="highlight">
   <code>
-  labels = os.listdir('/Users/grahamsmith/Documents/SpringboardWork/Seamless_Twitter_Analysis/tweets')
+  #get a list of filenames
+  labels = os.listdir('{filepath}/tweets')
+  #each month of tweets is in a seperate .csv, so we combine them together
+  csvs = []
+  for x in labels:
+    csvs.append(pd.read_csv('{filepath}/tweets' + x ))
+  df = pd.concat(csvs)
   </code>
 </pre>
-
+<br>
 lorem ipsum
 
 <h2> Exploration </h2>
