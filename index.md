@@ -26,7 +26,7 @@ All code was written in Python.
 
 Seamless currently has about 4300 followers on Twitter, and has a relatively active account tweeting on average once per day. Using the Twitter analytics dashboard I collected a CSVs for each month starting in July 2022 and going back to their first tweet in June 2018. These CSV's were turned into pandas dataframes and appended together into a single table.
 <br>
-<pre class="highlight">
+<pre class="language-python">
   <code>
   <div id="codeBlock">
   #get a list of filenames
