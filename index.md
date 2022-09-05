@@ -1,3 +1,7 @@
+<link rel="stylesheet" href="/path/to/styles/default.min.css">
+<script src="/path/to/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
 <h1>Seamless Bay Area Twitter Analysis</h1>
 
 <h2> Background </h2>
