@@ -1,6 +1,3 @@
----
-layout: default
----
 
 <h1>Seamless Bay Area Twitter Analysis</h1>
 
