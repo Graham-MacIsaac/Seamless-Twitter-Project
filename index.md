@@ -1,3 +1,10 @@
+<script>
+w3CodeColor(document.getElementById("codeBlock"));
+
+function w3CodeColor(elmnt) {
+  // click "Try it Yourself" to see the JavaScript...
+}
+</script>
 
 <h1>Seamless Bay Area Twitter Analysis</h1>
 
@@ -25,6 +32,7 @@ Seamless currently has about 4300 followers on Twitter, and has a relatively act
 <br>
 <pre class="highlight">
   <code>
+  <div id="codeBlock">
   #get a list of filenames
   labels = os.listdir('{filepath}/tweets')
   #each month of tweets is in a seperate .csv, so we combine them together
@@ -32,6 +40,7 @@ Seamless currently has about 4300 followers on Twitter, and has a relatively act
   for x in labels:
     csvs.append(pd.read_csv('{filepath}/tweets' + x ))
   df = pd.concat(csvs)
+  </div>
   </code>
 </pre>
 <br>
