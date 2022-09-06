@@ -35,7 +35,6 @@ Leaving us with a single dataframe that looks like this:
 <img width="1090" alt="Screen Shot 2022-09-05 at 4 24 33 PM" src="https://user-images.githubusercontent.com/13599213/188520182-de446499-6409-4eb2-a57c-c45a981770bf.png">
 <br>
 However there were a bunch of "promoted" columns that looked like they might be empty, which would make sense since Seamless had an ad budget of $0 and wasn't promoting anything. However just to be sure I looked at every row in those columns to make sure they were in fact empty
-<br>
 ```python
   # Every column from 23 to the end is a "promoted" column, which we suspect has no data
   promoted_cols = df.iloc[:,22:]
