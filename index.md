@@ -1,4 +1,4 @@
-<h1>Seamless Bay Area Twitter Analysis</h1>
+<h1>Seamless Bay Area Tweet Analysis</h1>
 <br>
 <h2> Background </h2>
 <br>
@@ -32,10 +32,6 @@ Seamless currently has about 4300 followers on Twitter, and has a relatively act
   df = pd.concat(csvs)
 ```
 <br>
-Leaving us with a single dataframe that looks like this:
-<br><br>
-<img width="1090" alt="Screen Shot 2022-09-05 at 4 24 33 PM" src="https://user-images.githubusercontent.com/13599213/188520182-de446499-6409-4eb2-a57c-c45a981770bf.png">
-<br>
 However there were a bunch of "promoted" columns that looked like they might be empty, which would make sense since Seamless had an ad budget of $0 and wasn't promoting anything. However just to be sure I looked at every row in those columns to make sure they were in fact empty.
 <br><br>
 
@@ -55,7 +51,50 @@ However there were a bunch of "promoted" columns that looked like they might be 
 This gave a result of "True" which meant all those columns are empty and we can safetly drop them. We're also going to drop the first two columns because Tweet ID and Permalink are just identifiers we won't be using.
 <br>
 
+```python
+df = df.iloc[:,2:12]
+```
+
+<br>
+This leaves us with a dataframe looking like this:
+<br>
+<img width="1073" alt="Screen Shot 2022-09-06 at 5 42 00 PM" src="https://user-images.githubusercontent.com/13599213/188764104-a40f7eff-a354-4cd2-9aea-4e6a7d0b446c.png">
+<br>
 <h2> Exploration </h2>
+<br>
+My first step in exploratory data analysis was just to see if there were any obvious linear relationships between the variables. I did this by calculating the r-squared, or, what percent of the variation in engagement rate can be explained by the other variables. Let's start with time, since it's reasonable to hypothesize that tweets during active hours would be more popular than ones during off hours like the middle of the night.
+```python
+#check the relationship between hour of the day and engagements
+model = LinearRegression()
+a = df['hour'].to_numpy()
+x = a.reshape(-1, 1)
+y = df['engagements']
+model.fit(x,y)
+r_sq = model.score(x, y)
+print(r_aq)
+```
+This gave us a result of 0.000866, which is pretty terrible. That means only ~0.09% of the variation in engagement rate is explained by what hour of a date a tweet was made.
+<br>
+Maybe tweet length will be better
+
+```python
+# AVERAGE NUMBER OF WORDS
+y = []
+for x in df['tweet words']:
+    y.append(len(x))
+df['tweet length'] = y
+#check the relationship between hour of the day and engagements
+model = LinearRegression()
+a = df['tweet length'].to_numpy()
+x = a.reshape(-1, 1)
+y = df['engagements']
+model.fit(x,y)
+r_sq = model.score(x, y)
+print(r_sq)
+```
+
+<br>
+<h2> Feature Engineering </h2>
 <br>
 lorem ipsum
 <br>
