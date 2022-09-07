@@ -38,6 +38,8 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from sklearn.metrics import accuracy_score
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn import
+print(classification_report(y_test, count_nb_pred))
 ```
 <br>
 Now we're ready to load the data. <br>
@@ -299,6 +301,56 @@ Here's what that looks like:
 <br>
 <img width="763" alt="Screen Shot 2022-09-07 at 1 07 04 AM" src="https://user-images.githubusercontent.com/13599213/188825093-9d63306a-54fb-4cc6-9e48-eb5b5bcb7735.png">
 <br>
+Let's also sum the number of links, mentions and emojis<br>
+
+```python
+import emoji
+
+#function to check if sth is an emoji
+def char_is_emoji(character):
+    return emoji.distinct_emoji_list(character)
+
+#function to count emoji
+def emoji_counter(text_string):
+    count = 0
+    for x in text_string:
+        a = char_is_emoji(x)
+        if len(a) > 0:
+            count += 1
+    return count
+  
+df['emoji_count'] = df['Tweet text'].apply(emoji_counter)
+temp = []
+for x in df['replies']:
+    if len(x) > 0:
+        a = re.sub('\[', '', str(x))
+        b = re.sub('\]', '', a)
+        c = re.sub('\'', '', b)
+        d = re.sub('\,', '', c)
+        temp.append(re.split(' ', d))
+    else:
+        temp.append('')
+temp2 = []
+for x in temp:
+    temp2.append(len(x))
+df['sum_mentions'] = temp2
+#Let's check tweets with links and find it's correlation with engagements
+has_links = []
+for x in df['links']:
+    if type(x) == str:
+        has_links.append(1)
+    else:
+        has_links.append(0)
+temp = []
+for x in df['links']:
+    temp.append(re.split(' ', str(x)))
+temp2 = []
+for x in temp:
+    temp2.append(len(x))
+df['link_count'] = temp2
+df['word_count'] = [len(re.split(' ', x)) for x in df['Tweet text']]
+```
+<br>
 Moving on to the last feature I want to create: sentiment score. This works by getting a list of positive and negative words, then comparing each tweet and assigning it a score from -1 to 1 based on how many (if any) of those words it has. This list was downloaded from Kaggle and can be found here:
 https://www.kaggle.com/datasets/mukulkirti/positive-and-negative-word-listrar<br>
 
@@ -366,11 +418,11 @@ At this point we've identified several potentially important features and extrac
 <br>
 <h2> Modeling </h2>
 <br>
-The first order of business is to build some models to predict engagement rate from tweet text. The question can be approached as a simple classification problem, where the label is “high engagement” (1) or “low engagement” (0). In this case I'm defining "high engagement" as an engagement rate above the mean. We’ll compare the results of using two models, each paired with the Multinomial Naive Bayes classifier.
-<Br>
-The first model is Count vectorizer, which is used to transform a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text.
+The first order of business is to build some models to predict engagement rate from tweet text. The question can be approached as a simple classification problem, where the label is “high engagement” (1) or “low engagement” (0). In this case I'm defining "high engagement" as an engagement rate above the mean. We’ll use a Multinomial Naive Bayes classification model with two different methods of vectorization (the method by which you turn human-legible words into computer-legible numbers).
 <br>
-The second model is a slightly more complicated version called TFIDF, or the mouthful Term Frequency Inverse Document Frequency, which works by proportionally increasing the number of times a word appears in the document but is counterbalanced by the number of documents in which it is present. In other words, it finds words which are common in one class but not the other.
+The first vectorizer is simply a count of the words, aka countVectorizer, which is used to transform a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text.
+<br>
+The second method is a slightly more complicated version called TFIDF, or the mouthful Term Frequency Inverse Document Frequency, which works by proportionally increasing the number of times a word appears in the document but is counterbalanced by the number of documents in which it is present. In other words, it finds words which are common in one class but not the other.
 <br>
 <em>A few notes on the hyperparameters: min_df and max_df Ignore terms that have a document frequency higher than 90% (very frequent), and lower than the 5% (highly infrequent), this has a similar effect of the stopwords in that it pulls out useless words.</em><br>
 
@@ -389,19 +441,24 @@ We should check the proportion of classes in case we need to stratify our train/
 print('the proportion of our classes is: ' + str(len( df[df['engagement rate'] > mean] )/ len(df)))
 ```
 <br>
-The proportion of our classes is: 0.346
+The proportion of our classes is: 0.346, which we'll have to keep in mind
 <br>
-Now let's get to building those models!<br>
+Before we build the models there's one last preparation step - removing stopwords. These are common words that would completely overwhelm the models but don't actually tell us much, like pronouns (I, she, he, they, etc.), prepositions (by, with, about, until, etc.), conjunctions (and, but, or, while, etc.) and other common errors like single letters or numbers<br>
+We can do this by just defining a list of words for the vectorizer<br>
 
+```python
+#define stopwords
+stopwords = ['mon','articl','amp',"https","0o", "0s", "3a", "I", "she", "he", "they", "by", "with", {...}] 
+```
+<br>
+Now let's build that model!<br>
+  
 ```python
 #create target 
 y = df['target']
 
 #create train and test set
 X_train, X_test, y_train, y_test = train_test_split(df['Tweet text'], y, random_state=53, test_size=.25, stratify=y)
-
-#define stopwords
-stopwords = ['mon','articl','amp',"https","0o", "0s", "3a", "3b", "3d", "6b", "6o", "a", "a1", "a2", "a3", "a4", "ab", "able", "about", "above", "abst", "ac", "accordance", "according", "accordingly", "across", "act", "actually", "ad", "added", "adj", "ae", "af", "affected", "affecting", "affects", "after", "afterwards", "ag", "again", "against", "ah", "ain", "ain't", "aj", "al", "all", "allow", "allows", "almost", "alone", "along", "already", "also", "although", "always", "am", "among", "amongst", "amoungst", "amount", "an", "and", "announce", "another", "any", "anybody", "anyhow", "anymore", "anyone", "anything", "anyway", "anyways", "anywhere", "ao", "ap", "apart", "apparently", "appear", "appreciate", "appropriate", "approximately", "ar", "are", "aren", "arent", "aren't", "arise", "around", "as", "a's", "aside", "ask", "asking", "associated", "at", "au", "auth", "av", "available", "aw", "away", "awfully", "ax", "ay", "az", "b", "b1", "b2", "b3", "ba", "back", "bc", "bd", "be", "became", "because", "become", "becomes", "becoming", "been", "before", "beforehand", "begin", "beginning", "beginnings", "begins", "behind", "being", "believe", "below", "beside", "besides", "best", "better", "between", "beyond", "bi", "bill", "biol", "bj", "bk", "bl", "bn", "both", "bottom", "bp", "br", "brief", "briefly", "bs", "bt", "bu", "but", "bx", "by", "c", "c1", "c2", "c3", "ca", "call", "came", "can", "cannot", "cant", "can't", "cause", "causes", "cc", "cd", "ce", "certain", "certainly", "cf", "cg", "ch", "changes", "ci", "cit", "cj", "cl", "clearly", "cm", "c'mon", "cn", "co", "com", "come", "comes", "con", "concerning", "consequently", "consider", "considering", "contain", "containing", "contains", "corresponding", "could", "couldn", "couldnt", "couldn't", "course", "cp", "cq", "cr", "cry", "cs", "c's", "ct", "cu", "currently", "cv", "cx", "cy", "cz", "d", "d2", "da", "date", "dc", "dd", "de", "definitely", "describe", "described", "despite", "detail", "df", "di", "did", "didn", "didn't", "different", "dj", "dk", "dl", "do", "does", "doesn", "doesn't", "doing", "don", "done", "don't", "down", "downwards", "dp", "dr", "ds", "dt", "du", "due", "during", "dx", "dy", "e", "e2", "e3", "ea", "each", "ec", "ed", "edu", "ee", "ef", "effect", "eg", "ei", "eight", "eighty", "either", "ej", "el", "eleven", "else", "elsewhere", "em", "empty", "en", "end", "ending", "enough", "entirely", "eo", "ep", "eq", "er", "es", "especially", "est", "et", "et-al", "etc", "eu", "ev", "even", "ever", "every", "everybody", "everyone", "everything", "everywhere", "ex", "exactly", "example", "except", "ey", "f", "f2", "fa", "far", "fc", "few", "ff", "fi", "fifteen", "fifth", "fify", "fill", "find", "fire", "first", "five", "fix", "fj", "fl", "fn", "fo", "followed", "following", "follows", "for", "former", "formerly", "forth", "forty", "found", "four", "fr", "from", "front", "fs", "ft", "fu", "full", "further", "furthermore", "fy", "g", "ga", "gave", "ge", "get", "gets", "getting", "gi", "give", "given", "gives", "giving", "gj", "gl", "go", "goes", "going", "gone", "got", "gotten", "gr", "greetings", "gs", "gy", "h", "h2", "h3", "had", "hadn", "hadn't", "happens", "hardly", "has", "hasn", "hasnt", "hasn't", "have", "haven", "haven't", "having", "he", "hed", "he'd", "he'll", "hello", "help", "hence", "her", "here", "hereafter", "hereby", "herein", "heres", "here's", "hereupon", "hers", "herself", "hes", "he's", "hh", "hi", "hid", "him", "himself", "his", "hither", "hj", "ho", "home", "hopefully", "how", "howbeit", "however", "how's", "hr", "hs", "http", "hu", "hundred", "hy", "i", "i2", "i3", "i4", "i6", "i7", "i8", "ia", "ib", "ibid", "ic", "id", "i'd", "ie", "if", "ig", "ignored", "ih", "ii", "ij", "il", "i'll", "im", "i'm", "immediate", "immediately", "importance", "important", "in", "inasmuch", "inc", "indeed", "index", "indicate", "indicated", "indicates", "information", "inner", "insofar", "instead", "interest", "into", "invention", "inward", "io", "ip", "iq", "ir", "is", "isn", "isn't", "it", "itd", "it'd", "it'll", "its", "it's", "itself", "iv", "i've", "ix", "iy", "iz", "j", "jj", "jr", "js", "jt", "ju", "just", "k", "ke", "keep", "keeps", "kept", "kg", "kj", "km", "know", "known", "knows", "ko", "l", "l2", "la", "largely", "last", "lately", "later", "latter", "latterly", "lb", "lc", "le", "least", "les", "less", "lest", "let", "lets", "let's", "lf", "like", "liked", "likely", "line", "little", "lj", "ll", "ll", "ln", "lo", "look", "looking", "looks", "los", "lr", "ls", "lt", "ltd", "m", "m2", "ma", "made", "mainly", "make", "makes", "many", "may", "maybe", "me", "mean", "means", "meantime", "meanwhile", "merely", "mg", "might", "mightn", "mightn't", "mill", "million", "mine", "miss", "ml", "mn", "mo", "more", "moreover", "most", "mostly", "move", "mr", "mrs", "ms", "mt", "mu", "much", "mug", "must", "mustn", "mustn't", "my", "myself", "n", "n2", "na", "name", "namely", "nay", "nc", "nd", "ne", "near", "nearly", "necessarily", "necessary", "need", "needn", "needn't", "needs", "neither", "never", "nevertheless", "new", "next", "ng", "ni", "nine", "ninety", "nj", "nl", "nn", "no", "nobody", "non", "none", "nonetheless", "noone", "nor", "normally", "nos", "not", "noted", "nothing", "novel", "now", "nowhere", "nr", "ns", "nt", "ny", "o", "oa", "ob", "obtain", "obtained", "obviously", "oc", "od", "of", "off", "often", "og", "oh", "oi", "oj", "ok", "okay", "ol", "old", "om", "omitted", "on", "once", "one", "ones", "only", "onto", "oo", "op", "oq", "or", "ord", "os", "ot", "other", "others", "otherwise", "ou", "ought", "our", "ours", "ourselves", "out", "outside", "over", "overall", "ow", "owing", "own", "ox", "oz", "p", "p1", "p2", "p3", "page", "pagecount", "pages", "par", "part", "particular", "particularly", "pas", "past", "pc", "pd", "pe", "per", "perhaps", "pf", "ph", "pi", "pj", "pk", "pl", "placed", "please", "plus", "pm", "pn", "po", "poorly", "possible", "possibly", "potentially", "pp", "pq", "pr", "predominantly", "present", "presumably", "previously", "primarily", "probably", "promptly", "proud", "provides", "ps", "pt", "pu", "put", "py", "q", "qj", "qu", "que", "quickly", "quite", "qv", "r", "r2", "ra", "ran", "rather", "rc", "rd", "re", "readily", "really", "reasonably", "recent", "recently", "ref", "refs", "regarding", "regardless", "regards", "related", "relatively", "research", "research-articl", "respectively", "resulted", "resulting", "results", "rf", "rh", "ri", "right", "rj", "rl", "rm", "rn", "ro", "rq", "rr", "rs", "rt", "ru", "run", "rv", "ry", "s", "s2", "sa", "said", "same", "saw", "say", "saying", "says", "sc", "sd", "se", "sec", "second", "secondly", "section", "see", "seeing", "seem", "seemed", "seeming", "seems", "seen", "self", "selves", "sensible", "sent", "serious", "seriously", "seven", "several", "sf", "shall", "shan", "shan't", "she", "shed", "she'd", "she'll", "shes", "she's", "should", "shouldn", "shouldn't", "should've", "show", "showed", "shown", "showns", "shows", "si", "side", "significant", "significantly", "similar", "similarly", "since", "sincere", "six", "sixty", "sj", "sl", "slightly", "sm", "sn", "so", "some", "somebody", "somehow", "someone", "somethan", "something", "sometime", "sometimes", "somewhat", "somewhere", "soon", "sorry", "sp", "specifically", "specified", "specify", "specifying", "sq", "sr", "ss", "st", "still", "stop", "strongly", "sub", "substantially", "successfully", "such", "sufficiently", "suggest", "sup", "sure", "sy", "system", "sz", "t", "t1", "t2", "t3", "take", "taken", "taking", "tb", "tc", "td", "te", "tell", "ten", "tends", "tf", "th", "than", "thank", "thanks", "thanx", "that", "that'll", "thats", "that's", "that've", "the", "their", "theirs", "them", "themselves", "then", "thence", "there", "thereafter", "thereby", "thered", "therefore", "therein", "there'll", "thereof", "therere", "theres", "there's", "thereto", "thereupon", "there've", "these", "they", "theyd", "they'd", "they'll", "theyre", "they're", "they've", "thickv", "thin", "think", "third", "this", "thorough", "thoroughly", "those", "thou", "though", "thoughh", "thousand", "three", "throug", "through", "throughout", "thru", "thus", "ti", "til", "tip", "tj", "tl", "tm", "tn", "to", "together", "too", "took", "top", "toward", "towards", "tp", "tq", "tr", "tried", "tries", "truly", "try", "trying", "ts", "t's", "tt", "tv", "twelve", "twenty", "twice", "two", "tx", "u", "u201d", "ue", "ui", "uj", "uk", "um", "un", "under", "unfortunately", "unless", "unlike", "unlikely", "until", "unto", "uo", "up", "upon", "ups", "ur", "us", "use", "used", "useful", "usefully", "usefulness", "uses", "using", "usually", "ut", "v", "va", "value", "various", "vd", "ve", "ve", "very", "via", "viz", "vj", "vo", "vol", "vols", "volumtype", "vq", "vs", "vt", "vu", "w", "wa", "want", "wants", "was", "wasn", "wasnt", "wasn't", "way", "we", "wed", "we'd", "welcome", "well", "we'll", "well-b", "went", "were", "we're", "weren", "werent", "weren't", "we've", "what", "whatever", "what'll", "whats", "what's", "when", "whence", "whenever", "when's", "where", "whereafter", "whereas", "whereby", "wherein", "wheres", "where's", "whereupon", "wherever", "whether", "which", "while", "whim", "whither", "who", "whod", "whoever", "whole", "who'll", "whom", "whomever", "whos", "who's", "whose", "why", "why's", "wi", "widely", "will", "willing", "wish", "with", "within", "without", "wo", "won", "wonder", "wont", "won't", "words", "world", "would", "wouldn", "wouldnt", "wouldn't", "www", "x", "x1", "x2", "x3", "xf", "xi", "xj", "xk", "xl", "xn", "xo", "xs", "xt", "xv", "xx", "y", "y2", "yes", "yet", "yj", "yl", "you", "youd", "you'd", "you'll", "your", "youre", "you're", "yours", "yourself", "yourselves", "you've", "yr", "ys", "yt", "z", "zero", "zi", "zz",]
 
 # initialize count vectorizer with english stopwords eliminating the least and most frequent words
 count_vectorizer = CountVectorizer(stop_words=stopwords, min_df=.05, max_df=.9)
@@ -439,8 +496,123 @@ count_nb_score = accuracy_score(y_test, count_nb_pred)
 print('NaiveBayes Tfidf Score: ', tfidf_nb_score)
 print('NaiveBayes Count Score: ', count_nb_score)
 ```
-
+  
 <br> 
+NaiveBayes Tfidf Score:  0.6536412078152753 <br>
+NaiveBayes Count Score:  0.650088809946714
+<br>
+Tfidf is the winner with 0.66% accuracy, although Count was very close. However this isn't super useful to us on its own, let's see this broken down by class and vectorization method.<br>
+
+
+```python
+# let's see count first
+print(classification_report(y_test, count_nb_pred))
+```
+
+<br>
+<img width="427" alt="Screen Shot 2022-09-07 at 1 00 16 PM" src="https://user-images.githubusercontent.com/13599213/188966212-5ce5d6bf-9eaa-4120-a58e-78df3116eb28.png"><br>
+
+This tells us that the model was about 33% more precise (the % of predictions that were accurate) with low engagement tweets than with high engagement ones.
+<br>
+The model's recall (the % of all correct answers that were accurately found) was also better for low engagement tweets, but by a considerably higher margin - nearly two orders of magnitude.
+<br>
+This means that while the model was decent at guessing whether or not a tweet would be low engagement, it's actually much worse at catching high engagement ones than the overall weighted average would imply. It misclassified 92% of high engagement tweets.<br>
+
+```python
+# let's do TFIDF next
+print(classification_report(y_test, tfidf_nb_pred))
+```
+<br>
+<img width="427" alt="Screen Shot 2022-09-07 at 1 02 50 PM" src="https://user-images.githubusercontent.com/13599213/188966671-ae6f09db-25c3-4ab3-a9d6-7e3231ab0e77.png">
+<br>
+Strangely enough, TFIDF is actually completely missing all the high engagement tweets so its accuracy is actually very deceptive. This indicates we should be just using regular counts instead.
+<br>
+That direction doesn't seem especially useful, so why don't we try just looking at which words occured most frequently with one class over the other.<br>
+
+```python
+#get top 10 keywords
+feature_names = np.array(tfidf_vectorizer.get_feature_names_out())
+tfidf_sorting = np.argsort(feature_names.flatten())[::-1]
+
+top_10 = feature_names[tfidf_sorting][:10]
+bottom_10 = feature_names[tfidf_sorting][-10:]
+
+print(f'''Top 10 keywords most likely to elicit a higher engagement rate are: 
+{top_10}, and the top 10 keywords most likely to elicit a lower engagement were: {bottom_10}''')
+```
+<br>
+Top 10 keywords most likely to elicit a higher engagement rate are: 
+['work' 'transportation' 'transit' 'today' 'support' 'spur_urbanist'
+ 'service' 'seamless' 'riders' 'regional'] <br>
+and the top 10 keywords most likely to elicit a lower engagement were: ['integration' 'integrated' 'funding' 'fares' 'fare' 'caltrain' 'board'
+ 'bay' 'area' 'agencies'] <br>
+This might be easier to visualize as a wordcloud <br>
+
+```python
+#Top 10 keywords most likely to elicit a higher engagement rate are
+from wordcloud import WordCloud
+word_cloud = WordCloud(collocations = False, background_color = 'white').generate(str(feature_names[tfidf_sorting][:10]))
+plt.imshow(word_cloud, interpolation='bilinear')
+plt.axis("off")
+plt.show()
+```
+<br>
+<img width="341" alt="Screen Shot 2022-09-07 at 1 05 29 PM" src="https://user-images.githubusercontent.com/13599213/188967118-656e2645-71a6-4e0f-aa6d-8bc939b9b3b5.png"><br>
+
+```python
+#Top 10 keywords most likely to elicit a lower engagement rate are
+from wordcloud import WordCloud
+word_cloud = WordCloud(collocations = False, background_color = 'white').generate(str(feature_names[tfidf_sorting][-10:]))
+plt.imshow(word_cloud, interpolation='bilinear')
+plt.axis("off")
+plt.show()
+```
+<br>
+This is a little hard to interpret, but it seems like tweets that indicate an immediate call to action ('today', 'support') do well, and people apparently don't like to hear about caltrain! I'm not sure what to take away from the fact that so many phrases related to the bay area do poorly.
+<br>
+Words alone might make a tweet, but they are just one thing that impacts audience’s engagement with it. We can try to predict engagement rate using a set of other tweets’ features. Specifically: day of the week, hour of the day, minute, number of mentions the tweet includes, and sentiment score. It's also possible that classification was the wrong approach and we should be trying to predict engagement rate linearly. To that end, let's plug these features into a linear regression.<br>
+
+```python
+#create a df for linear regression, 
+df_pred_lr = df[['engagement rate','day','hour', 'minute', 'sum_mentions',
+                  'emoji_count', 'word_count','link_count', 'Sentiment Score']]
+#create features
+x_lr = df_pred_lr.iloc[:,1:]
+
+#create target
+y_lr = df_pred_lr['engagement rate']
+
+x_lr.head()
+```
+<br>
+Just for reference, here's what our data looks like.
+<br>
+<img width="619" alt="Screen Shot 2022-09-07 at 1 12 22 PM" src="https://user-images.githubusercontent.com/13599213/188968272-448bb8e4-b116-45e8-81b4-1c86b3d6b6d9.png">
+<br>
+Now to do the regression itself.
+<br>
+
+```python
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+
+#create new train & test set
+X_train, X_test, y_train, y_test = train_test_split(x_lr, y_lr, random_state=53, test_size=.33)
+
+#initialise model
+lr = LinearRegression()
+
+#fit & predict
+lr.fit(X_train, y_train)
+lr_pred = lr.predict(X_test)
+
+#evaluate
+print('Mean Squared Error (MSE):', metrics.mean_squared_error(y_test, lr_pred))
+print('Root Mean Standard Deviation (RMSE):', np.sqrt(metrics.mean_squared_error(y_test, lr_pred)))
+print('Observation Standard Deviation:', np.std(df['engagement rate']))
+```
+<br>
+
 <h2> Conclusion </h2>
 <br>
 lorem ipsum
