@@ -611,13 +611,128 @@ print('Mean Squared Error (MSE):', metrics.mean_squared_error(y_test, lr_pred))
 print('Root Mean Standard Deviation (RMSE):', np.sqrt(metrics.mean_squared_error(y_test, lr_pred)))
 print('Observation Standard Deviation:', np.std(df['engagement rate']))
 ```
+Mean Squared Error (MSE): 0.0007673429816235223 <br>
+Root Mean Standard Deviation (RMSE): 0.02770095633048654 <br>
+Observation Standard Deviation: 0.026600178403302095 <br>
 <br>
+A RMSE that's greater than half the standard deviation of the observed data is considered high, so this is a very good score (almost suspiciously so, it makes me think I might have messed something up) <br>
+<br>
+source: https://elibrary.asabe.org/abstract.asp?aid=23153 <br>
+<br>
+However RMSE is a bit hard to interpret because you need to keep in mind the size of the units to interpret this. We can use Mean Absolute Percentage Error (MAPE) instead, which is the average of the absolute value of the predicted values subtracted by the real values.<br><br>
 
+```python
+#calculate the MAPE
+MAPE = []
+for x in y_test:
+    for y in lr_pred:
+        MAPE.append(x - y)
+print('Mean Absolute Percentage Error is: ' + (str(np.round(np.mean(np.abs(MAPE)), decimals=3))))
+```
+Mean Absolute Percentage Error is: 0.018 <br>
+<br>
+Still pretty good! this means that on average, prediction are 1.8% off, which is pretty fantastic.
+<br>
+We can also visualize this by building a histogram of the residuals:<br>
+
+```python
+#calculate residuals and build a histogram
+resids = []
+for x in y_test:
+    for y in lr_pred:
+        resids.append(x - y)
+resids = np.array(resids)
+plt.hist(resids, bins='auto')
+plt.show()
+```
+<img width="383" alt="Screen Shot 2022-09-07 at 1 21 58 PM" src="https://user-images.githubusercontent.com/13599213/188969955-92d761f5-8b42-42d1-b4a5-3d4c13335557.png">
+<br>
+This is still not very helpful from a business standpoint. If we want to make actual recommendtion to our stakeholders we need to get the coefficients and see how significant they are. <br><br>
+
+```python
+# I had to remake the regression and because results.summary only worked with a .ols object
+import statsmodels.formula.api as smf
+regdf = x_lr
+regdf = regdf.rename(columns={'Sentiment Score': 'sentiment_score'})
+regdf['y'] = y_lr
+results = smf.ols('y ~ day + hour + minute + sum_mentions + emoji_count + word_count + link_count + sentiment_score', data=regdf).fit()
+print(results.summary())
+```
+<img width="654" alt="Screen Shot 2022-09-07 at 1 23 25 PM" src="https://user-images.githubusercontent.com/13599213/188970182-82f1ffdf-d9d0-45ba-8927-e7b35ef35092.png">
+<br>
+Despite the tight residuals and great MAPE score, only a few of the parameters were statistically significant and they all had small impact sizes. <br>
+<img width="210" alt="Screen Shot 2022-09-07 at 1 26 05 PM" src="https://user-images.githubusercontent.com/13599213/188970641-58bf7c9a-ebd5-49e9-9d3c-6f01f6f6aeb1.png">
+<br>
+Tweeting later in the day has a slight effect on engagement rate, increasing it by 0.06%. Total number of mentions is a bit better, increasing engagemnet by 0.41%. Sentiment has the largest impact at 4.3%, although interestingly it's a negative impact meaning that having more negative words (or fewer positive ones) actually increases engagement rate.<br>
+<br>
+Are these small sizes still important? Well, that's going to depend on the mean and distribution of our target variable. Let's look at that.<br><br>
+```python
+plt.hist(regdf['y'], bins='auto')
+plt.show()
+print(f'The average engagement score is: ' + str(round(np.mean(regdf['y']), 5)))
+```
+<img width="381" alt="Screen Shot 2022-09-07 at 1 24 19 PM" src="https://user-images.githubusercontent.com/13599213/188970331-442a5e7d-418b-480e-80c2-d5bd53672368.png">
+The average engagement score is: 0.0265<br>
+<br>
+Given that mean engagement rate is only 2.6%, the small coefficients are more impactful than they appear.<br>
+Let's apply this in an example to see what the best day to tweet is, holding all other variabeles at their mean values to show how this model could be used to make specific recommendations. <br><br>
+
+```python
+#%%capture [--no-stderr]
+#check same values but diff day of the week
+l = {}
+for item in range(0,7):
+    prediction = lr.predict([[item,np.mean(x_lr['hour']),np.mean(x_lr['minute']),np.mean(x_lr['sum_mentions']),np.mean(x_lr['emoji_count']),np.mean(x_lr['word_count']),np.mean(x_lr['link_count']),np.mean(x_lr['Sentiment Score'])]])
+    l[item] = prediction
+    print(f'day ' + str(item + 1) + ' has a predicted engagement rate of ' + str(prediction))
+```
+day 1 has a predicted engagement rate of [0.02350074]<br>
+day 2 has a predicted engagement rate of [0.0243688]<br>
+day 3 has a predicted engagement rate of [0.02523687]<br>
+day 4 has a predicted engagement rate of [0.02610494]<br>
+day 5 has a predicted engagement rate of [0.02697301]<br>
+day 6 has a predicted engagement rate of [0.02784107]<br>
+day 7 has a predicted engagement rate of [0.02870914]<br>
+<br>
+It looks like tweeting on a Sunday (day 7) has the highest engagement rate.<br>
+<br>
+We can also visualize the pairwise correlations of the variables just for fun, as a heatmap:<br>
+
+```python
+data = df[['engagement rate','day','hour', 'minute', 'sum_mentions',
+                  'emoji_count', 'word_count','link_count', 'Sentiment Score']]
+corr = data.corr()
+fig = plt.figure()
+ax = fig.add_subplot(111)
+cax = ax.matshow(corr,cmap='coolwarm', vmin=-1, vmax=1)
+fig.colorbar(cax)
+ticks = np.arange(0,len(data.columns),1)
+ax.set_xticks(ticks)
+plt.xticks(rotation=90)
+ax.set_yticks(ticks)
+ax.set_xticklabels(data.columns)
+ax.set_yticklabels(data.columns)
+plt.show()
+```
+<img width="390" alt="Screen Shot 2022-09-07 at 1 39 59 PM" src="https://user-images.githubusercontent.com/13599213/188973235-9fe87a6f-b5b3-4717-a024-6f4b2a0a3c93.png">
+<br>
+or as a pairplot<br><br>
+
+ ```python
+from seaborn import pairplot
+pairplot(data)
+```
+<img src="https://user-images.githubusercontent.com/13599213/188973638-45046d89-3494-4593-a992-67c25c2be7c6.png">
+<br>
+It's a little hard to see, but this corresponds to what the model was telling us - sum_mentions is the only factor that clearly has a correlation with engagement rate.<br>
+<br>
 <h2> Conclusion </h2>
 <br>
-lorem ipsum
+So what can we say about all of this? The results weren't as clear as I would like, but from a practical standpoint we can make a few recommendations. First of all, the more interactive a tweet is, the better. This includes mentioning other accounts, attaching pictures and maps, and having immediate calls to action. People don't especially like hearing about fares, and there's a slight bias favoring negative words which I would attribute to everyone loving to complain about bad public transit. The data doesn't seem to indicate a strong correlation with any particular time/day, but it's possibly there may be a very slight positive effect when tweeting on the weekend.<br>
+<br>
+There are some major caveats to these conclusions though. First of all, the data is clearly still pretty dirty and really needs a few more rounds of filtering before I could talk about any of these results with great confidence. Additionally, problems like this really should be solved with neural networks (espcially Convolutional Neural Networks or Recurrant Neural Networks). Natural language processing is a complicated field and really deserves more subtle and finely tuned models than the simple ones I've used here.
 <br>
 <h2> Acknowledgements </h2>
 <br>
-lorem ipsum
+I'd like to thank Seamless Bay Area for giving me access to their data, this has been a fascinating project. AJ Sanchez, my Springboard mentor has also been tremendous with all of his advice, and for graciously extending my deadline on this project. Finally a big shout out to David Giles (@github.com/dabbodev) for his infinite knowledge of markdown, python, and the universe.
 <br>
