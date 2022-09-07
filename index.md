@@ -1,5 +1,3 @@
-<h1>Seamless Bay Area Tweet Analysis</h1>
-<br>
 <h2> Background </h2>
 <br>
 The San Francisco Bay Area, or officially speaking the "San Jose-San Francisco-Oakland, CA Combined Statistical Area" is the 5th largest metropolitan area in the United States, with a population of 9.7 million people, and 100+ cities. It might not seem too surprising to learn it takes 27 different public transit agencies cover this wide area.
@@ -567,6 +565,7 @@ plt.imshow(word_cloud, interpolation='bilinear')
 plt.axis("off")
 plt.show()
 ```
+<img width="343" alt="Screen Shot 2022-09-07 at 1 57 39 PM" src="https://user-images.githubusercontent.com/13599213/188977586-93d5511b-f7b3-4c9d-a89c-732c0d078a63.png">
 <br>
 This is a little hard to interpret, but it seems like tweets that indicate an immediate call to action ('today', 'support') do well, and people apparently don't like to hear about caltrain! I'm not sure what to take away from the fact that so many phrases related to the bay area do poorly.
 <br>
