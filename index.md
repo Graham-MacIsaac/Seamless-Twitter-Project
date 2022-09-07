@@ -62,7 +62,8 @@ This leaves us with a dataframe looking like this:
 <br>
 <h2> Exploration </h2>
 <br>
-My first step in exploratory data analysis was just to see if there were any obvious linear relationships between the variables. I did this by calculating the r-squared, or, what percent of the variation in engagement rate can be explained by the other variables. Let's start with time, since it's reasonable to hypothesize that tweets during active hours would be more popular than ones during off hours like the middle of the night.
+My first step in exploratory data analysis was just to see if there were any obvious linear relationships between the variables. I did this by calculating the r-squared, or, what percent of the variation in engagement rate can be explained by the other variables. Let's start with time, since it's reasonable to hypothesize that tweets during active hours would be more popular than ones during off hours like the middle of the night. <br> <br>
+
 ```python
 #check the relationship between hour of the day and engagements
 model = LinearRegression()
@@ -75,7 +76,7 @@ print(r_aq)
 ```
 This gave us a result of 0.000866, which is pretty terrible. That means only ~0.09% of the variation in engagement rate is explained by what hour of a date a tweet was made.
 <br>
-Maybe tweet length will be better
+Maybe tweet length will be better. <br><br>
 
 ```python
 # AVERAGE NUMBER OF WORDS
@@ -92,6 +93,21 @@ model.fit(x,y)
 r_sq = model.score(x, y)
 print(r_sq)
 ```
+0.0074, which is <b>technically</b> better, but that's not saying much.
+<br>
+This seems like a good time to take a look at our target variable and see what's going on.<br><br>
+
+```python
+df['engagements'].hist(bins=20)
+```
+<br>
+<img width="391" alt="Screen Shot 2022-09-06 at 6 20 52 PM" src="https://user-images.githubusercontent.com/13599213/188767855-660605fe-ed72-4eb7-a894-4d7de45eefb5.png">
+<br>
+Well that might explain some of it. Engagement is incredibly skewed. It looks like nearly all tweets have less than 100 total engagements. Specifically, the mean of engagements is ~42 while the standard deviation is over 200. The skew is 24.85, which means only 20% of tweets are above average.
+<br>
+It's not wonder finding correlations is hard, most tweets don't have enough engagement to say anything in particular about them.
+<br>
+
 
 <br>
 <h2> Feature Engineering </h2>
