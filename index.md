@@ -57,12 +57,26 @@ df = df.iloc[:,2:12]
 
 <br>
 This leaves us with a dataframe looking like this:
-<br>
+<br><br>
 <img width="1073" alt="Screen Shot 2022-09-06 at 5 42 00 PM" src="https://user-images.githubusercontent.com/13599213/188764104-a40f7eff-a354-4cd2-9aea-4e6a7d0b446c.png">
 <br>
 <h2> Exploration </h2>
 <br>
-My first step in exploratory data analysis was just to see if there were any obvious linear relationships between the variables. I did this by calculating the r-squared, or, what percent of the variation in engagement rate can be explained by the other variables. Let's start with time, since it's reasonable to hypothesize that tweets during active hours would be more popular than ones during off hours like the middle of the night. <br> <br>
+My first step in exploratory data analysis was just to see if there were any obvious linear relationships between the engagement and the only other independent variable provided in the original data - time. I did this by calculating the r-squared, or, what percent of the variation in engagement rate can be explained by time. 
+<br>
+We need to take the string that's been provided and convert it to a datetime object first<br><br>
+
+```python
+from datetime import datetime
+temp = []
+for x in range(len(df['time'])):
+    # It's in a weird format that datetime doesn't accomodate, so we'll need to remove the last
+    # 6 characters of the string and replace it with an appropriate seconds identifier
+    temp.append(datetime.strptime(str(df['time'].iloc[x][0:-6] + ':00'), '%Y-%m-%d %H:%M:%S'))
+df['time'] = temp
+```
+<br>
+It's reasonable to hypothesize that tweets during active hours would be more popular than ones during off hours like the middle of the night, but let's see if that's actually the case. <br> <br>
 
 ```python
 #check the relationship between hour of the day and engagements
@@ -93,9 +107,7 @@ model.fit(x,y)
 r_sq = model.score(x, y)
 print(r_sq)
 ```
-0.0074, which is <b>technically</b> better, but that's not saying much.
-<br>
-This seems like a good time to take a look at our target variable and see what's going on.<br><br>
+0.0074, which is <b>technically</b> better, but that's not saying much. This seems like a good time to take a look at our target variable and see what's going on.<br><br>
 
 ```python
 df['engagements'].hist(bins=20)
@@ -105,7 +117,30 @@ df['engagements'].hist(bins=20)
 <br>
 Well that might explain some of it. Engagement is incredibly skewed. It looks like nearly all tweets have less than 100 total engagements. Specifically, the mean of engagements is ~42 while the standard deviation is over 200. The skew is 24.85, which means only 20% of tweets are above average.
 <br>
-It's not wonder finding correlations is hard, most tweets don't have enough engagement to say anything in particular about them.
+I thought that perhaps this could be a problem of the individual components of engagement not having the same disstribution (as a reminder these are retweets, likes, replies, url clicks and profile clicks). I normalized each of the columns via maximum absolute scaling so that each value is between -1 and 1 to make direct comparison more legible. Using the follwing formula: <br><br>
+
+<img width="218" alt="Screen Shot 2022-09-06 at 11 12 45 PM" src="https://user-images.githubusercontent.com/13599213/188802118-68cfbcdb-5228-42a1-bbe8-dc59728d6fc1.png">
+<br>
+Calculated with:<br><br>
+
+
+```python
+stat.stdev(sorted_hi_value_tweets['{variable name}'] / sorted_hi_value_tweets['{variable name}'].abs().max())
+```
+
+<ul>
+  <li>Retweets - 0.076</li>
+  <li>Likes - 0.088</li>
+  <li>Replies - 0.106</li>
+  <li>Profile Clicks - 0.072</li>
+  <li>URL Clicks - 0.069</li>
+</ul>
+<br>
+Replies has the largest standard deviation, which isn't surprising since so many tweets have a tiny number of them.
+<br>
+It's not wonder finding correlations is hard, most tweets don't have enough engagement to say anything in particular about them. But it does mean that there are some extreme outliers we can look at that might tell us something about what identifies a very successful tweet. I took a look at that top 20% of both engagement and engagement rate to see if there were any obvious takeaways.
+<br>
+Interestingly - the two were actually very different. The top 30 tweets by engagement all featured either time sensitive calls to action (vote on X immediately, come to Y event tomorrow, etc.) or had links to maps. However the top 30 tweets by engagement were almost entirely congratulations or thanks to other accounts (ex: @twitter_user Thanks for your support! 🙏🚆🚍).
 <br>
 
 
