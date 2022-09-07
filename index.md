@@ -20,7 +20,27 @@ All code was written in Python.
 <br><br>
 <h2> Cleaning </h2>
 <br><br>
-Seamless currently has about 4300 followers on Twitter, and has a relatively active account tweeting on average once per day. Using the Twitter analytics dashboard I collected a CSVs for each month starting in July 2022 and going back to their first tweet in June 2018. These CSV's were turned into pandas dataframes and appended together into a single table.
+Seamless currently has about 4300 followers on Twitter, and has a relatively active account tweeting on average once per day. Using the Twitter analytics dashboard I collected a CSVs for each month starting in July 2022 and going back to their first tweet in June 2018. These CSV's were turned into pandas dataframes and appended together into a single table. First we need to load all libraries we'll be using for this project. <br>
+
+```python
+import pandas as pd
+import numpy as np
+import re
+import os
+import statistics as stat
+from sklearn import linear_model
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+import random; random.seed(53)
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import train_test_split
+from sklearn import metrics
+from sklearn.metrics import accuracy_score
+from sklearn.feature_extraction.text import CountVectorizer
+```
+<br>
+Now we're ready to load the data. <br>
 
 ```python
   #get a list of filenames
@@ -56,9 +76,10 @@ df = df.iloc[:,2:12]
 ```
 
 <br>
-This leaves us with a dataframe looking like this:
-<br><br>
+This leaves us with a dataframe looking like this:<br><br>
+
 <img width="1073" alt="Screen Shot 2022-09-06 at 5 42 00 PM" src="https://user-images.githubusercontent.com/13599213/188764104-a40f7eff-a354-4cd2-9aea-4e6a7d0b446c.png">
+
 <br>
 <h2> Exploration </h2>
 <br>
@@ -147,7 +168,201 @@ Interestingly - the two were actually very different. The top 30 tweets by engag
 <br>
 <h2> Feature Engineering </h2>
 <br>
-lorem ipsum
+Before the data can be used for modeling we'll have to go through some pre-processing. We need to perform all the feature engineering that I suspect will be necessary for the modeling step. Specifically, I want to identify links/attached media, @replies (when the tweet references another twitter account), calls to action, and sentiment score. Let's do them in that order, starting with links. <br>
+
+```python
+#add a space to the end of every tweet so we can find links at the end of tweets
+temp = []
+for x in range(len(df)):
+    temp.append(df['Tweet text'][x] + ' ')
+df['Tweet text'] = temp
+
+#find every sub-string that's "https:// + some characters + a space"
+links = []
+for x in range(len(df)):
+    a = re.findall(r'https://.* ', df['Tweet text'].iloc[x])
+    links.append(a)
+df['links'] = links
+
+#do a bunch of annoying cleaning so that each item is a nice list of links
+temp = []
+
+for x in range(len(df)):
+    temp.append(re.split('\s', str(df['links'][x])))
+
+for x in range(len(temp)):
+    temp[x] = temp[x][0:-1]
+
+for x in range(len(temp)):
+    temp[x] = re.sub('\[', '', str(temp[x]))
+    
+for x in range(len(temp)):
+    temp[x] = re.sub('\]', '', str(temp[x]))
+    
+for x in range(len(temp)):
+    temp[x] = re.sub('\'', '', str(temp[x]))
+
+for x in range(len(temp)):
+    temp[x] = re.sub('\"', '', str(temp[x]))
+
+df['links'] = temp
+```
+<br>
+This gives us a list which looks like this:
+<br>
+<img width="376" alt="Screen Shot 2022-09-07 at 1 02 58 AM" src="https://user-images.githubusercontent.com/13599213/188824195-434025c5-1880-4f0c-9859-46b48b04cc59.png">
+<br>
+Next is replies (as in, tweets from Seamless that mention another Twitter account). The idea is to build a columns of dummy variables that are 0 if that tweet doesn't contain a mention of a specific account and a 1 if it does. Bear with me, this took a lot of wrangling. <br><br>
+
+```python
+#split the tweets into individual words
+replies = []
+for x in range(len(df)):
+    a = re.split(' ', df['Tweet text'].iloc[x])
+    replies.append(a)
+df['replies_sentance'] = replies
+
+#find all the replies, aka sub-strings starting with @
+temp3 = []
+for z in range(len(df)):
+    temp = []
+    for x in df['replies_sentance'][z]:
+        temp.append(re.findall(r'@.*', x))
+    temp2 = []
+    for y in temp:
+        if len(y) > 0:
+            temp2.append(y)
+    temp3.append(temp2)
+df['replies'] = temp3
+
+#put it into a list
+temp = []
+for x in df['replies']:
+    temp.append(list(x))
+#I couldn't get the dummies to work further down so I converted it into a string, and then split
+#it again
+temp = []
+for x in df['replies']:
+    if len(x) > 0:
+        a = re.sub('\[', '', str(x))
+        b = re.sub('\]', '', a)
+        c = re.sub('\'', '', b)
+        d = re.sub('\,', '', c)
+        temp.append(re.split(' ', d))
+    else:
+        temp.append('')
+#split each of the first 5 replies into a seperate column, so that dummies can be made
+rep = []
+rep1 = []
+rep2 = []
+rep3 = []
+
+for x in range(len(temp)):
+    if len(temp[x]) == 0:
+        rep.append('')
+        rep1.append('')
+        rep2.append('')
+        rep3.append('')
+    if len(temp[x]) == 1:
+        rep.append(temp[x][0])
+        rep1.append('')
+        rep2.append('')
+        rep3.append('')
+    if len(temp[x]) == 2:
+        rep.append(temp[x][0])
+        rep1.append(temp[x][1])
+        rep2.append('')
+        rep3.append('')
+    if len(temp[x]) == 3:
+        rep.append(temp[x][0])
+        rep1.append(temp[x][1])
+        rep2.append(temp[x][2])
+        rep3.append('')
+    if len(temp[x]) >= 4:
+        rep.append(temp[x][0])
+        rep1.append(temp[x][1])
+        rep2.append(temp[x][2])
+        rep3.append(temp[x][3])
+
+#build a dataframe that we'll use for the dummies
+df1 = pd.DataFrame()
+df1['engagements'] = df['engagements']
+df1['rep'] = rep
+df1['rep1'] = rep1
+df1['rep2'] = rep2
+df1['rep3'] = rep3
+df1 = pd.get_dummies(df1)
+print(df1)
+```
+<br>
+Here's what that looks like:
+<br>
+<img width="763" alt="Screen Shot 2022-09-07 at 1 07 04 AM" src="https://user-images.githubusercontent.com/13599213/188825093-9d63306a-54fb-4cc6-9e48-eb5b5bcb7735.png">
+<br>
+Moving on to the last feature I want to create: sentiment score. This works by getting a list of positive and negative words, then comparing each tweet and assigning it a score from -1 to 1 based on how many (if any) of those words it has. This list was downloaded from Kaggle and can be found here:
+https://www.kaggle.com/datasets/mukulkirti/positive-and-negative-word-listrar<br>
+
+```python
+words = pd.read_excel('/Users/grahamsmith/Documents/SpringboardWork/Positive and Negative Word List.xlsx')
+
+# negative words first
+temp = []
+for x in words['Negative Sense Word List']:
+    temp.append(str(x))
+words['Negative Sense Words'] = temp
+temp = []
+for x in df['tweet words']:
+    temp.append([ele for ele in list(words['Negative Sense Words']) if(ele in str(x))])
+df['Negative words'] = temp
+
+# then positive words
+temp = []
+for x in words['Positive Sense Word List']:
+    temp.append(str(x))
+words['Positive Sense Words'] = temp
+temp = []
+for x in df['tweet words']:
+    temp.append([ele for ele in list(words['Positive Sense Words']) if(ele in str(x))])
+df['Positive words'] = temp
+```
+<br>
+Sentiment score is calculated by subtracting the number of negative words in the tweet from the number of positive words and dividing it by the total number of words to find a ratio of positive:negative.<br>
+
+```python
+temp = []
+for x in range(len(df)):
+    temp.append((len(df['Positive words'][x])/len(df['Tweet text'][x])) - (len(df['Negative words'][x])/len(df['Tweet text'][x])))
+df['Sentiment Score'] = temp
+```
+<br>
+Let's take date and split it into the individual time components (day/hour/minute)<br>
+
+```python
+let's make hour and minute their own columns for the regression
+#for some inexplicable reason, to_csv reverts datetime objects to strings so it needs to be converted again
+from datetime import datetime
+temp = []
+for x in range(len(df['time'])):
+    temp.append(datetime.strptime(str(df['time'].iloc[x]), '%Y-%m-%d %H:%M:%S'))
+df['time'] = temp
+
+temp = []
+for x in df['time']:
+    temp.append(x.hour)
+df['hour'] = temp
+
+temp = []
+for x in df['time']:
+    temp.append(x.minute)
+df['minute'] = temp
+
+temp = []
+for x in df['time']:
+    temp.append(x.isoweekday())
+df['day'] = temp
+```
+<br>
+At this point we've identified several potentially important features and extracted them from the tweet text data, including links, sentiment, and replies. At this point we've also performed some baseline regressions with time and tweet length, the best of which only had an R^2 of 0.023, which is not especially powerful. We're ready to get to modeling.
 <br>
 <h2> Modeling </h2>
 <br>
