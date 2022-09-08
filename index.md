@@ -673,7 +673,7 @@ print(f'The average engagement score is: ' + str(round(np.mean(regdf['y']), 5)))
 <img width="381" alt="Screen Shot 2022-09-07 at 1 24 19 PM" src="https://user-images.githubusercontent.com/13599213/188970331-442a5e7d-418b-480e-80c2-d5bd53672368.png">
 The average engagement score is: 0.0265<br>
 <br>
-Given that mean engagement rate is only 2.6%, the small coefficients are more impactful than they appear.<br>
+Given that mean engagement rate is only 2.6%, the small coefficients are much more impactful than they appear. Sentiment has a huge impact, a single extra negative word (or a single fewer postitve ones) changing engagement rate at nearly double the magnitude of the average engagement rate.<br>
 Let's apply this in an example to see what the best day to tweet is, holding all other variabeles at their mean values to show how this model could be used to make specific recommendations. <br><br>
 
 ```python
