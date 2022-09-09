@@ -1,6 +1,6 @@
 <h2> Background </h2>
 <br>
-The San Francisco Bay Area, or officially speaking the "San Jose-San Francisco-Oakland, CA Combined Statistical Area" is the 5th largest metropolitan area in the United States, with a population of 9.7 million people, and 100+ cities. It might not seem too surprising to learn it takes 27 different public transit agencies cover this wide area.
+The San Francisco Bay Area, or officially speaking the "San Jose-San Francisco-Oakland, CA Combined Statistical Area" is the 5th largest metropolitan area in the United States, with a population of 9.7 million people, and 100+ cities. It might not seem too surprising to learn it takes 27 different public transit agencies to cover this wide an area.
 <br><br>
 That's a shame, because it SHOULD be surprising. New York City with it's 20 million people, Washington DC + Baltimore with 10 million, and Chicago with 9.8, have a grand total of 15 transit agencies between them. I wouldn't be surprised if the SF Bay Area had more public transit organizations per capita than any urban area on the planet.
 <br><br>
@@ -12,7 +12,7 @@ To help them in pursuit of this laudable goal, I volunteered my data science ski
 <br>
 The first step was to collect the data, which I did through the Twitter analytics dashboard. Next was to explore the data and see if there were any obvious patterns, and get a basic sense of how the data was distributed. Once all the data was collected, I trained a classification model to put tweets into two buckets based on engagement rate (aka, how many people were liking/replying/retweeting/etc. compared to the number of people seeing that tweet) either high (above average) or low (below average). I took 80% of the data to train the model with (stratifying by class since there were roughly twice as many low engagement tweets as high engagement ones) and tested it on the other 20%.
 <br><br>
-To follow that up I performed some feature engineering to extract elements that could be used in a linear regression, and to make some more human readible suggestions about what kinds of things Seamless could do with their Tweets to maximize engagement.
+To follow that up I performed some feature engineering to extract elements that could be used in a linear regression, and to make some more human readable suggestions about what kinds of things Seamless could do with their Tweets to maximize engagement.
 <br><br>
 All code was written in Python.
 <br><br>
@@ -52,7 +52,7 @@ Now we're ready to load the data. <br>
   df = pd.concat(csvs)
 ```
 <br>
-However there were a bunch of "promoted" columns that looked like they might be empty, which would make sense since Seamless had an ad budget of $0 and wasn't promoting anything. However just to be sure I looked at every row in those columns to make sure they were in fact empty.
+Howeverm there were a bunch of "promoted" columns that looked like they might be empty. Seamless had an ad budget of $0 and wasn't promoting anything so this made sense. Just to be sure I looked at every row in those columns to make sure they were in fact empty.
 <br><br>
 
 ```python
@@ -138,7 +138,7 @@ df['engagements'].hist(bins=20)
 <br>
 Well that might explain some of it. Engagement is incredibly skewed. It looks like nearly all tweets have less than 100 total engagements. Specifically, the mean of engagements is ~42 while the standard deviation is over 200. The skew is 24.85, which means only 20% of tweets are above average.
 <br>
-I thought that perhaps this could be a problem of the individual components of engagement not having the same disstribution (as a reminder these are retweets, likes, replies, url clicks and profile clicks). I normalized each of the columns via maximum absolute scaling so that each value is between -1 and 1 to make direct comparison more legible. Using the follwing formula: <br><br>
+I thought that perhaps this could be a problem of the individual components of engagement not having the same distribution (as a reminder these are retweets, likes, replies, url clicks and profile clicks). I normalized each of the columns via maximum absolute scaling so that each value is between -1 and 1 to make direct comparison more legible. Using the follwing formula: <br><br>
 
 <img width="218" alt="Screen Shot 2022-09-06 at 11 12 45 PM" src="https://user-images.githubusercontent.com/13599213/188802118-68cfbcdb-5228-42a1-bbe8-dc59728d6fc1.png">
 <br>
@@ -159,7 +159,7 @@ stat.stdev(sorted_hi_value_tweets['{variable name}'] / sorted_hi_value_tweets['{
 <br>
 Replies has the largest standard deviation, which isn't surprising since so many tweets have a tiny number of them.
 <br>
-It's not wonder finding correlations is hard, most tweets don't have enough engagement to say anything in particular about them. But it does mean that there are some extreme outliers we can look at that might tell us something about what identifies a very successful tweet. I took a look at that top 20% of both engagement and engagement rate to see if there were any obvious takeaways.
+It's no wonder finding correlations is hard, most tweets don't have enough engagement to say anything in particular about them. But it does mean that there are some extreme outliers we can look at that might tell us something about what identifies a very successful tweet. I took a look at that top 20% of both engagement and engagement rate to see if there were any obvious takeaways.
 <br>
 Interestingly - the two were actually very different. The top 30 tweets by engagement all featured either time sensitive calls to action (vote on X immediately, come to Y event tomorrow, etc.) or had links to maps. However the top 30 tweets by engagement were almost entirely congratulations or thanks to other accounts (ex: @twitter_user Thanks for your support! 🙏🚆🚍).
 <br>
@@ -212,7 +212,7 @@ This gives us a list which looks like this:
 <br>
 <img width="376" alt="Screen Shot 2022-09-07 at 1 02 58 AM" src="https://user-images.githubusercontent.com/13599213/188824195-434025c5-1880-4f0c-9859-46b48b04cc59.png">
 <br>
-Next is replies (as in, tweets from Seamless that mention another Twitter account). The idea is to build a columns of dummy variables that are 0 if that tweet doesn't contain a mention of a specific account and a 1 if it does. Bear with me, this took a lot of wrangling. <br><br>
+Next is replies (as in, tweets from Seamless that mention another Twitter account). The idea is to build columns of dummy variables that are 0 if that tweet doesn't contain a mention of a specific account and a 1 if it does. Bear with me, this took a lot of wrangling. <br><br>
 
 ```python
 #split the tweets into individual words
@@ -385,7 +385,7 @@ for x in range(len(df)):
 df['Sentiment Score'] = temp
 ```
 <br>
-Let's take date and split it into the individual time components (day/hour/minute)<br>
+Let's take the date column and split it into the individual time components (day/hour/minute)<br>
 
 ```python
 let's make hour and minute their own columns for the regression
@@ -412,13 +412,13 @@ for x in df['time']:
 df['day'] = temp
 ```
 <br>
-At this point we've identified several potentially important features and extracted them from the tweet text data, including links, sentiment, and replies. At this point we've also performed some baseline regressions with time and tweet length, the best of which only had an R^2 of 0.023, which is not especially powerful. We're ready to get to modeling.
+At this point we've identified several potentially important features and extracted them from the tweet text data, including links, sentiment, and replies. We've also performed some baseline regressions with time and tweet length, the best of which only had an R^2 of 0.023, which is not especially powerful. We're ready to get to modeling.
 <br>
 <h2> Modeling </h2>
 <br>
 The first order of business is to build some models to predict engagement rate from tweet text. The question can be approached as a simple classification problem, where the label is “high engagement” (1) or “low engagement” (0). In this case I'm defining "high engagement" as an engagement rate above the mean. We’ll use a Multinomial Naive Bayes classification model with two different methods of vectorization (the method by which you turn human-legible words into computer-legible numbers).
 <br>
-The first vectorizer is simply a count of the words, aka countVectorizer, which is used to transform a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text.
+The first vectorizer is simply a count of the words, aka CountVectorizer, which is used to transform a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text.
 <br>
 The second method is a slightly more complicated version called TFIDF, or the mouthful Term Frequency Inverse Document Frequency, which works by proportionally increasing the number of times a word appears in the document but is counterbalanced by the number of documents in which it is present. In other words, it finds words which are common in one class but not the other.
 <br>
