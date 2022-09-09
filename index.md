@@ -428,9 +428,8 @@ We should check the proportion of classes in case we need to stratify our train/
 ```python
 print('the proportion of our classes is: ' + str(len( df[df['engagement rate'] > mean] )/ len(df)))
 ```
-The proportion of our classes is: 0.346, which we'll have to keep in mind
+The proportion of our classes is: 0.346, which we'll have to keep in mind before we build the models there's one last preparation step - removing stopwords. These are common words that would completely overwhelm the models but don't actually tell us much, like pronouns (I, she, he, they, etc.), prepositions (by, with, about, until, etc.), conjunctions (and, but, or, while, etc.) and other common errors like single letters or numbers<br>
 <br>
-Before we build the models there's one last preparation step - removing stopwords. These are common words that would completely overwhelm the models but don't actually tell us much, like pronouns (I, she, he, they, etc.), prepositions (by, with, about, until, etc.), conjunctions (and, but, or, while, etc.) and other common errors like single letters or numbers<br>
 We can do this by just defining a list of words for the vectorizer<br>
 
 ```python
@@ -501,7 +500,7 @@ This tells us that the model was about 33% more precise (the % of predictions th
 <br>
 The model's recall (the % of all correct answers that were accurately found) was also better for low engagement tweets, but by a considerably higher margin - nearly two orders of magnitude.
 <br>
-This means that while the model was decent at guessing whether or not a tweet would be low engagement, it's actually much worse at catching high engagement ones than the overall weighted average would imply. It misclassified 92% of high engagement tweets.<br>
+This means that while the model was decent at guessing whether or not a tweet would be low engagement, it's actually much worse at catching high engagement ones than the overall weighted average would imply; It misclassified 92% of high engagement tweets.<br>
 
 ```python
 # let's do TFIDF next
@@ -512,7 +511,7 @@ print(classification_report(y_test, tfidf_nb_pred))
 <br>
 Strangely enough, TFIDF is actually completely missing all the high engagement tweets so its accuracy is actually very deceptive. This indicates we should be just using regular counts instead.
 <br>
-That direction doesn't seem especially useful, so why don't we try just looking at which words occured most frequently with one class over the other.<br>
+We'll also want to look at which words occured most frequently with one class over the other.<br>
 
 ```python
 #get top 10 keywords
@@ -528,8 +527,9 @@ print(f'''Top 10 keywords most likely to elicit a higher engagement rate are:
 Top 10 keywords most likely to elicit a higher engagement rate are: 
 ['work' 'transportation' 'transit' 'today' 'support' 'spur_urbanist'
  'service' 'seamless' 'riders' 'regional'] <br>
-and the top 10 keywords most likely to elicit a lower engagement were: ['integration' 'integrated' 'funding' 'fares' 'fare' 'caltrain' 'board'
- 'bay' 'area' 'agencies'] <br>
+<br>
+Top 10 keywords most likely to elicit a lower engagement were: ['integration' 'integrated' 'funding' 'fares' 'fare' 'caltrain' 'board'
+ 'bay' 'area' 'agencies'] <br><br>
 This might be easier to visualize as a wordcloud <br>
 
 ```python
@@ -553,7 +553,7 @@ plt.show()
 ```
 <img width="343" alt="Screen Shot 2022-09-07 at 1 57 39 PM" src="https://user-images.githubusercontent.com/13599213/188977586-93d5511b-f7b3-4c9d-a89c-732c0d078a63.png"><br>
 <br>
-This is a little hard to interpret, but it seems like tweets that indicate an immediate call to action ('today', 'support') do well, and people apparently don't like to hear about caltrain! I'm not sure what to take away from the fact that so many phrases related to the bay area do poorly.
+This is a little hard to interpret, but it seems like tweets that indicate an immediate call to action ('today', 'support') do well, and people apparently don't like to hear about caltrain! I'm not sure what to take away from the fact that so many phrases related to the bay area do poorly.<br>
 <br>
 Words alone might make a tweet, but they are just one thing that impacts audience’s engagement with it. We can try to predict engagement rate using a set of other tweets’ features. Specifically: day of the week, hour of the day, minute, number of mentions the tweet includes, and sentiment score. It's also possible that classification was the wrong approach and we should be trying to predict engagement rate linearly. To that end, let's plug these features into a linear regression.<br>
 
