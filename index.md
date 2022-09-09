@@ -107,7 +107,7 @@ model.fit(x,y)
 r_sq = model.score(x, y)
 print(r_aq)
 ```
-This gave us a result of 0.000866, which is pretty terrible. That means only ~0.09% of the variation in engagement rate is explained by what hour of a date a tweet was made.
+This gave us a result of 0.000866, which is pretty terrible. That means roughly 0.09% of the variation in engagement rate is explained by what hour of a date a tweet was made.
 <br>
 Maybe tweet length will be better. <br>
 
