@@ -344,8 +344,8 @@ for x in temp:
 df['link_count'] = temp2
 df['word_count'] = [len(re.split(' ', x)) for x in df['Tweet text']]
 ```
-Moving on to the last feature I want to create: sentiment score. This works by getting a list of positive and negative words, then comparing each tweet and assigning it a score from -1 to 1 based on how many (if any) of those words it has. This list was downloaded from Kaggle and can be found here:
-https://www.kaggle.com/datasets/mukulkirti/positive-and-negative-word-listrar<br>
+Moving on to the last feature I want to create: sentiment score. This works by getting a list of positive and negative words, then comparing each tweet and assigning it a score from -1 to 1 based on how many (if any) of those words it has. This list was downloaded from Kaggle and can be found
+<a href="https://www.kaggle.com/datasets/mukulkirti/positive-and-negative-word-listrar">HERE</a>:<br>
 
 ```python
 words = pd.read_excel('/Users/grahamsmith/Documents/SpringboardWork/Positive and Negative Word List.xlsx')
