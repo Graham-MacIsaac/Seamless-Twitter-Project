@@ -295,7 +295,7 @@ Here's what that looks like:<br>
 <br>
 <img width="763" alt="Screen Shot 2022-09-07 at 1 07 04 AM" src="https://user-images.githubusercontent.com/13599213/188825093-9d63306a-54fb-4cc6-9e48-eb5b5bcb7735.png"><br>
 <br>
-Let's also sum the number of links, mentions and emojis<br>
+Let's also sum the number of links, mentions and emojis:<br>
 
 ```python
 import emoji
@@ -600,11 +600,9 @@ Mean Squared Error (MSE): 0.0007673429816235223 <br>
 Root Mean Standard Deviation (RMSE): 0.02770095633048654 <br>
 Observation Standard Deviation: 0.026600178403302095 <br>
 <br>
-A RMSE that's greater than half the standard deviation of the observed data is considered high, so this is a very good score (almost suspiciously so, it makes me think I might have messed something up) <br>
+A RMSE that's greater than half the standard deviation of the observed data is considered high, so this is a very good score (almost suspiciously so, it makes me think I might have messed something up) - <a href="https://elibrary.asabe.org/abstract.asp?aid=23153">source</a><br>
 <br>
-source: https://elibrary.asabe.org/abstract.asp?aid=23153 <br>
-<br>
-However RMSE is a bit hard to interpret because you need to keep in mind the size of the units to interpret this. We can use Mean Absolute Percentage Error (MAPE) instead, which is the average of the absolute value of the predicted values subtracted by the real values.<br><br>
+However RMSE is a bit hard to interpret because you need to keep in mind the size of the units. We can use Mean Absolute Percentage Error (MAPE) instead, which is the average of the absolute value of the predicted values subtracted by the real values.<br><br>
 
 ```python
 #calculate the MAPE
@@ -632,7 +630,7 @@ plt.show()
 ```
 <img width="383" alt="Screen Shot 2022-09-07 at 1 21 58 PM" src="https://user-images.githubusercontent.com/13599213/188969955-92d761f5-8b42-42d1-b4a5-3d4c13335557.png"><br>
 <br>
-This is still not very helpful from a business standpoint. If we want to make actual recommendtion to our stakeholders we need to get the coefficients and see how significant they are. <br><br>
+It's good to know the model works, but this is still not very helpful from a business standpoint. If we want to make actual recommendtion to our stakeholders we need to get the coefficients and see how significant they are. <br><br>
 
 ```python
 # I had to remake the regression and because results.summary only worked with a .ols object
@@ -704,7 +702,7 @@ plt.show()
 ```
 <img width="390" alt="Screen Shot 2022-09-07 at 1 39 59 PM" src="https://user-images.githubusercontent.com/13599213/188973235-9fe87a6f-b5b3-4717-a024-6f4b2a0a3c93.png"><br>
 <br>
-or as a pairplot<br><br>
+Or as a pairplot:<br><br>
 
  ```python
 from seaborn import pairplot
@@ -718,9 +716,9 @@ It's a little hard to see, but this corresponds to what the model was telling us
 <br>
 So what can we say about all of this? The results weren't as clear as I would like, but from a practical standpoint we can make a few recommendations. First of all, the more interactive a tweet is, the better. This includes mentioning other accounts, attaching pictures and maps, and having immediate calls to action. People don't especially like hearing about fares, and there's a slight bias favoring negative words which I would attribute to everyone loving to complain about bad public transit. The data doesn't seem to indicate a strong correlation with any particular time/day, but it's possibly there may be a very slight positive effect when tweeting on the weekend.<br>
 <br>
-There are some major caveats to these conclusions though. First of all, the data is clearly still pretty dirty and really needs a few more rounds of filtering before I could talk about any of these results with great confidence. Additionally, problems like this really should be solved with neural networks (espcially Convolutional Neural Networks or Recurrant Neural Networks). Natural language processing is a complicated field and really deserves more subtle and finely tuned models than the simple ones I've used here.
+There are some major caveats to these conclusions though. First of all, the data is clearly still pretty dirty and really needs a few more rounds of filtering before I could talk about any of these results with great confidence. Additionally, problems like this really should be solved with neural networks (espcially Convolutional Neural Networks or Recurrant Neural Networks). Natural language processing is a complicated field, and deserves more finely tuned models than the relatively simple ones I've used here.
 <br>
 <h2> Acknowledgements </h2>
 <br>
-I'd like to thank Seamless Bay Area for giving me access to their data, this has been a fascinating project. AJ Sanchez, my Springboard mentor has also been tremendous with all of his advice, and for graciously extending my deadline on this project. Finally a big shout out to David Giles (@github.com/dabbodev) for his infinite knowledge of markdown, python, and the universe.
+I'd like to thank Seamless Bay Area for giving me access to their data, this has been a fascinating project. AJ Sanchez, my Springboard mentor has also been tremendous with all of his advice. Finally a big shout out to David Giles (@github.com/dabbodev) for his infinite knowledge of markdown, python, and the universe.
 <br>
