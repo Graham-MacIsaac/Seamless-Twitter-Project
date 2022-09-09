@@ -39,7 +39,6 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import
 print(classification_report(y_test, count_nb_pred))
 ```
-<br>
 Now we're ready to load the data. <br>
 
 ```python
@@ -76,7 +75,7 @@ df = df.iloc[:,2:12]
 ```
 
 <br>
-This leaves us with a dataframe looking like this:<br><br>
+This leaves us with a dataframe looking like this:<br>
 
 <img width="1073" alt="Screen Shot 2022-09-06 at 5 42 00 PM" src="https://user-images.githubusercontent.com/13599213/188764104-a40f7eff-a354-4cd2-9aea-4e6a7d0b446c.png">
 
@@ -111,7 +110,7 @@ print(r_aq)
 ```
 This gave us a result of 0.000866, which is pretty terrible. That means only ~0.09% of the variation in engagement rate is explained by what hour of a date a tweet was made.
 <br>
-Maybe tweet length will be better. <br><br>
+Maybe tweet length will be better. <br>
 
 ```python
 # AVERAGE NUMBER OF WORDS
@@ -128,7 +127,7 @@ model.fit(x,y)
 r_sq = model.score(x, y)
 print(r_sq)
 ```
-0.0074, which is <b>technically</b> better, but that's not saying much. This seems like a good time to take a look at our target variable and see what's going on.<br><br>
+0.0074, which is <b>technically</b> better, but that's not saying much. This seems like a good time to take a look at our target variable and see what's going on.<br>
 
 ```python
 df['engagements'].hist(bins=20)
@@ -136,13 +135,13 @@ df['engagements'].hist(bins=20)
 <br>
 <img width="391" alt="Screen Shot 2022-09-06 at 6 20 52 PM" src="https://user-images.githubusercontent.com/13599213/188767855-660605fe-ed72-4eb7-a894-4d7de45eefb5.png">
 <br>
-Well that might explain some of it. Engagement is incredibly skewed. It looks like nearly all tweets have less than 100 total engagements. Specifically, the mean of engagements is ~42 while the standard deviation is over 200. The skew is 24.85, which means only 20% of tweets are above average.
+Well that might explain some of it. Engagement is incredibly skewed. It looks like nearly all tweets have less than 100 total engagements. Specifically, the mean of engagements is ~42 while the standard deviation is over 200. The skew is 24.85, which means only 20% of tweets are above average. <br>
 <br>
-I thought that perhaps this could be a problem of the individual components of engagement not having the same distribution (as a reminder these are retweets, likes, replies, url clicks and profile clicks). I normalized each of the columns via maximum absolute scaling so that each value is between -1 and 1 to make direct comparison more legible. Using the follwing formula: <br><br>
+I thought that perhaps this could be a problem of the individual components of engagement not having the same distribution (as a reminder these are retweets, likes, replies, url clicks and profile clicks). I normalized each of the columns via maximum absolute scaling so that each value is between -1 and 1 to make direct comparison more legible. Using the follwing formula: <br>
 
-<img width="218" alt="Screen Shot 2022-09-06 at 11 12 45 PM" src="https://user-images.githubusercontent.com/13599213/188802118-68cfbcdb-5228-42a1-bbe8-dc59728d6fc1.png">
+<p style="text-align:center;"><img width="218" alt="Screen Shot 2022-09-06 at 11 12 45 PM" src="https://user-images.githubusercontent.com/13599213/188802118-68cfbcdb-5228-42a1-bbe8-dc59728d6fc1.png"></p>
 <br>
-Calculated with:<br><br>
+Calculated with:<br>
 
 
 ```python
@@ -157,13 +156,11 @@ stat.stdev(sorted_hi_value_tweets['{variable name}'] / sorted_hi_value_tweets['{
   <li>URL Clicks - 0.069</li>
 </ul>
 <br>
-Replies has the largest standard deviation, which isn't surprising since so many tweets have a tiny number of them.
+Replies has the largest standard deviation, which isn't surprising since so many tweets have a tiny number of them.<br>
 <br>
-It's no wonder finding correlations is hard, most tweets don't have enough engagement to say anything in particular about them. But it does mean that there are some extreme outliers we can look at that might tell us something about what identifies a very successful tweet. I took a look at that top 20% of both engagement and engagement rate to see if there were any obvious takeaways.
+It's no wonder finding correlations is hard, most tweets don't have enough engagement to say anything in particular about them. But it does mean that there are some extreme outliers we can look at that might tell us something about what identifies a very successful tweet. I took a look at that top 20% of both engagement and engagement rate to see if there were any obvious takeaways. <br>
 <br>
 Interestingly - the two were actually very different. The top 30 tweets by engagement all featured either time sensitive calls to action (vote on X immediately, come to Y event tomorrow, etc.) or had links to maps. However the top 30 tweets by engagement were almost entirely congratulations or thanks to other accounts (ex: @twitter_user Thanks for your support! 🙏🚆🚍).
-<br>
-
 
 <br>
 <h2> Feature Engineering </h2>
@@ -210,9 +207,9 @@ df['links'] = temp
 <br>
 This gives us a list which looks like this:
 <br>
-<img width="376" alt="Screen Shot 2022-09-07 at 1 02 58 AM" src="https://user-images.githubusercontent.com/13599213/188824195-434025c5-1880-4f0c-9859-46b48b04cc59.png">
+<img width="376" alt="Screen Shot 2022-09-07 at 1 02 58 AM" src="https://user-images.githubusercontent.com/13599213/188824195-434025c5-1880-4f0c-9859-46b48b04cc59.png"> <br>
 <br>
-Next is replies (as in, tweets from Seamless that mention another Twitter account). The idea is to build columns of dummy variables that are 0 if that tweet doesn't contain a mention of a specific account and a 1 if it does. Bear with me, this took a lot of wrangling. <br><br>
+Next is replies (as in, tweets from Seamless that mention another Twitter account). The idea is to build columns of dummy variables that are 0 if that tweet doesn't contain a mention of a specific account and a 1 if it does. Bear with me, this took a lot of wrangling. <br>
 
 ```python
 #split the tweets into individual words
@@ -295,9 +292,9 @@ df1 = pd.get_dummies(df1)
 print(df1)
 ```
 <br>
-Here's what that looks like:
+Here's what that looks like:<br>
 <br>
-<img width="763" alt="Screen Shot 2022-09-07 at 1 07 04 AM" src="https://user-images.githubusercontent.com/13599213/188825093-9d63306a-54fb-4cc6-9e48-eb5b5bcb7735.png">
+<img width="763" alt="Screen Shot 2022-09-07 at 1 07 04 AM" src="https://user-images.githubusercontent.com/13599213/188825093-9d63306a-54fb-4cc6-9e48-eb5b5bcb7735.png"><br>
 <br>
 Let's also sum the number of links, mentions and emojis<br>
 
@@ -348,7 +345,6 @@ for x in temp:
 df['link_count'] = temp2
 df['word_count'] = [len(re.split(' ', x)) for x in df['Tweet text']]
 ```
-<br>
 Moving on to the last feature I want to create: sentiment score. This works by getting a list of positive and negative words, then comparing each tweet and assigning it a score from -1 to 1 based on how many (if any) of those words it has. This list was downloaded from Kaggle and can be found here:
 https://www.kaggle.com/datasets/mukulkirti/positive-and-negative-word-listrar<br>
 
@@ -375,7 +371,6 @@ for x in df['tweet words']:
     temp.append([ele for ele in list(words['Positive Sense Words']) if(ele in str(x))])
 df['Positive words'] = temp
 ```
-<br>
 Sentiment score is calculated by subtracting the number of negative words in the tweet from the number of positive words and dividing it by the total number of words to find a ratio of positive:negative.<br>
 
 ```python
@@ -384,11 +379,10 @@ for x in range(len(df)):
     temp.append((len(df['Positive words'][x])/len(df['Tweet text'][x])) - (len(df['Negative words'][x])/len(df['Tweet text'][x])))
 df['Sentiment Score'] = temp
 ```
-<br>
 Let's take the date column and split it into the individual time components (day/hour/minute)<br>
 
 ```python
-let's make hour and minute their own columns for the regression
+#let's make hour and minute their own columns for the regression
 #for some inexplicable reason, to_csv reverts datetime objects to strings so it needs to be converted again
 from datetime import datetime
 temp = []
@@ -411,19 +405,17 @@ for x in df['time']:
     temp.append(x.isoweekday())
 df['day'] = temp
 ```
-<br>
 At this point we've identified several potentially important features and extracted them from the tweet text data, including links, sentiment, and replies. We've also performed some baseline regressions with time and tweet length, the best of which only had an R^2 of 0.023, which is not especially powerful. We're ready to get to modeling.
 <br>
 <h2> Modeling </h2>
 <br>
-The first order of business is to build some models to predict engagement rate from tweet text. The question can be approached as a simple classification problem, where the label is “high engagement” (1) or “low engagement” (0). In this case I'm defining "high engagement" as an engagement rate above the mean. We’ll use a Multinomial Naive Bayes classification model with two different methods of vectorization (the method by which you turn human-legible words into computer-legible numbers).
+The first order of business is to build some models to predict engagement rate from tweet text. The question can be approached as a simple classification problem, where the label is “high engagement” (1) or “low engagement” (0). In this case I'm defining "high engagement" as an engagement rate above the mean. We’ll use a Multinomial Naive Bayes classification model with two different methods of vectorization (the method by which you turn human-legible words into computer-legible numbers). <br>
 <br>
-The first vectorizer is simply a count of the words, aka CountVectorizer, which is used to transform a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text.
+The first vectorizer is simply a count of the words, aka CountVectorizer, which is used to transform a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text. <br>
 <br>
-The second method is a slightly more complicated version called TFIDF, or the mouthful Term Frequency Inverse Document Frequency, which works by proportionally increasing the number of times a word appears in the document but is counterbalanced by the number of documents in which it is present. In other words, it finds words which are common in one class but not the other.
+The second method is a slightly more complicated version called TFIDF, or the mouthful Term Frequency Inverse Document Frequency, which works by proportionally increasing the number of times a word appears in the document but is counterbalanced by the number of documents in which it is present. In other words, it finds words which are common in one class but not the other. <br>
 <br>
 <em>A few notes on the hyperparameters: min_df and max_df Ignore terms that have a document frequency higher than 90% (very frequent), and lower than the 5% (highly infrequent), this has a similar effect of the stopwords in that it pulls out useless words.</em><br>
-
 I attempted an ngram_range of (1,3) - meaning the vectorizers will incorporate bi- and tri-grams alongside single words, but it made almost literally no difference so I removed it. I felt unnessesary hyperparameters remove clarity without adding any additional information, although they do make your model feel cooler.<br>
 
 Let's create our classes<br>
@@ -432,13 +424,11 @@ Let's create our classes<br>
 mean = df['engagement rate'].mean()
 df['target'] = np.where((df['engagement rate'] > mean), 1, 0)
 ```
-<br>
 We should check the proportion of classes in case we need to stratify our train/test sets<br>
 
 ```python
 print('the proportion of our classes is: ' + str(len( df[df['engagement rate'] > mean] )/ len(df)))
 ```
-<br>
 The proportion of our classes is: 0.346, which we'll have to keep in mind
 <br>
 Before we build the models there's one last preparation step - removing stopwords. These are common words that would completely overwhelm the models but don't actually tell us much, like pronouns (I, she, he, they, etc.), prepositions (by, with, about, until, etc.), conjunctions (and, but, or, while, etc.) and other common errors like single letters or numbers<br>
@@ -448,7 +438,6 @@ We can do this by just defining a list of words for the vectorizer<br>
 #define stopwords
 stopwords = ['mon','articl','amp',"https","0o", "0s", "3a", "I", "she", "he", "they", "by", "with", {...}] 
 ```
-<br>
 Now let's build that model!<br>
   
 ```python
@@ -495,9 +484,8 @@ print('NaiveBayes Tfidf Score: ', tfidf_nb_score)
 print('NaiveBayes Count Score: ', count_nb_score)
 ```
   
-<br> 
-NaiveBayes Tfidf Score:  0.6536412078152753 <br>
-NaiveBayes Count Score:  0.650088809946714
+<em>NaiveBayes Tfidf Score:  0.6536412078152753 <br>
+NaiveBayes Count Score:  0.650088809946714</em> <br>
 <br>
 Tfidf is the winner with 0.66% accuracy, although Count was very close. However this isn't super useful to us on its own, let's see this broken down by class and vectorization method.<br>
 
@@ -510,7 +498,7 @@ print(classification_report(y_test, count_nb_pred))
 <br>
 <img width="427" alt="Screen Shot 2022-09-07 at 1 00 16 PM" src="https://user-images.githubusercontent.com/13599213/188966212-5ce5d6bf-9eaa-4120-a58e-78df3116eb28.png"><br>
 
-This tells us that the model was about 33% more precise (the % of predictions that were accurate) with low engagement tweets than with high engagement ones.
+This tells us that the model was about 33% more precise (the % of predictions that were accurate) with low engagement tweets than with high engagement ones.<br>
 <br>
 The model's recall (the % of all correct answers that were accurately found) was also better for low engagement tweets, but by a considerably higher margin - nearly two orders of magnitude.
 <br>
@@ -521,7 +509,7 @@ This means that while the model was decent at guessing whether or not a tweet wo
 print(classification_report(y_test, tfidf_nb_pred))
 ```
 <br>
-<img width="427" alt="Screen Shot 2022-09-07 at 1 02 50 PM" src="https://user-images.githubusercontent.com/13599213/188966671-ae6f09db-25c3-4ab3-a9d6-7e3231ab0e77.png">
+<img width="427" alt="Screen Shot 2022-09-07 at 1 02 50 PM" src="https://user-images.githubusercontent.com/13599213/188966671-ae6f09db-25c3-4ab3-a9d6-7e3231ab0e77.png"><br>
 <br>
 Strangely enough, TFIDF is actually completely missing all the high engagement tweets so its accuracy is actually very deceptive. This indicates we should be just using regular counts instead.
 <br>
@@ -538,7 +526,6 @@ bottom_10 = feature_names[tfidf_sorting][-10:]
 print(f'''Top 10 keywords most likely to elicit a higher engagement rate are: 
 {top_10}, and the top 10 keywords most likely to elicit a lower engagement were: {bottom_10}''')
 ```
-<br>
 Top 10 keywords most likely to elicit a higher engagement rate are: 
 ['work' 'transportation' 'transit' 'today' 'support' 'spur_urbanist'
  'service' 'seamless' 'riders' 'regional'] <br>
@@ -565,7 +552,7 @@ plt.imshow(word_cloud, interpolation='bilinear')
 plt.axis("off")
 plt.show()
 ```
-<img width="343" alt="Screen Shot 2022-09-07 at 1 57 39 PM" src="https://user-images.githubusercontent.com/13599213/188977586-93d5511b-f7b3-4c9d-a89c-732c0d078a63.png">
+<img width="343" alt="Screen Shot 2022-09-07 at 1 57 39 PM" src="https://user-images.githubusercontent.com/13599213/188977586-93d5511b-f7b3-4c9d-a89c-732c0d078a63.png"><br>
 <br>
 This is a little hard to interpret, but it seems like tweets that indicate an immediate call to action ('today', 'support') do well, and people apparently don't like to hear about caltrain! I'm not sure what to take away from the fact that so many phrases related to the bay area do poorly.
 <br>
@@ -584,9 +571,9 @@ y_lr = df_pred_lr['engagement rate']
 x_lr.head()
 ```
 <br>
-Just for reference, here's what our data looks like.
+Just for reference, here's what our data looks like.<br>
 <br>
-<img width="619" alt="Screen Shot 2022-09-07 at 1 12 22 PM" src="https://user-images.githubusercontent.com/13599213/188968272-448bb8e4-b116-45e8-81b4-1c86b3d6b6d9.png">
+<img width="619" alt="Screen Shot 2022-09-07 at 1 12 22 PM" src="https://user-images.githubusercontent.com/13599213/188968272-448bb8e4-b116-45e8-81b4-1c86b3d6b6d9.png"><br>
 <br>
 Now to do the regression itself.
 <br>
@@ -644,7 +631,7 @@ resids = np.array(resids)
 plt.hist(resids, bins='auto')
 plt.show()
 ```
-<img width="383" alt="Screen Shot 2022-09-07 at 1 21 58 PM" src="https://user-images.githubusercontent.com/13599213/188969955-92d761f5-8b42-42d1-b4a5-3d4c13335557.png">
+<img width="383" alt="Screen Shot 2022-09-07 at 1 21 58 PM" src="https://user-images.githubusercontent.com/13599213/188969955-92d761f5-8b42-42d1-b4a5-3d4c13335557.png"><br>
 <br>
 This is still not very helpful from a business standpoint. If we want to make actual recommendtion to our stakeholders we need to get the coefficients and see how significant they are. <br><br>
 
@@ -657,10 +644,11 @@ regdf['y'] = y_lr
 results = smf.ols('y ~ day + hour + minute + sum_mentions + emoji_count + word_count + link_count + sentiment_score', data=regdf).fit()
 print(results.summary())
 ```
-<img width="654" alt="Screen Shot 2022-09-07 at 1 23 25 PM" src="https://user-images.githubusercontent.com/13599213/188970182-82f1ffdf-d9d0-45ba-8927-e7b35ef35092.png">
+<img width="654" alt="Screen Shot 2022-09-07 at 1 23 25 PM" src="https://user-images.githubusercontent.com/13599213/188970182-82f1ffdf-d9d0-45ba-8927-e7b35ef35092.png"><br>
 <br>
 Despite the tight residuals and great MAPE score, only a few of the parameters were statistically significant and they all had small impact sizes. <br>
-<img width="210" alt="Screen Shot 2022-09-07 at 1 26 05 PM" src="https://user-images.githubusercontent.com/13599213/188970641-58bf7c9a-ebd5-49e9-9d3c-6f01f6f6aeb1.png">
+<br>
+<img width="210" alt="Screen Shot 2022-09-07 at 1 26 05 PM" src="https://user-images.githubusercontent.com/13599213/188970641-58bf7c9a-ebd5-49e9-9d3c-6f01f6f6aeb1.png"><br>
 <br>
 Tweeting later in the day has a slight effect on engagement rate, increasing it by 0.06%. Total number of mentions is a bit better, increasing engagemnet by 0.41%. Sentiment has the largest impact at 4.3%, although interestingly it's a negative impact meaning that having more negative words (or fewer positive ones) actually increases engagement rate.<br>
 <br>
@@ -670,10 +658,12 @@ plt.hist(regdf['y'], bins='auto')
 plt.show()
 print(f'The average engagement score is: ' + str(round(np.mean(regdf['y']), 5)))
 ```
-<img width="381" alt="Screen Shot 2022-09-07 at 1 24 19 PM" src="https://user-images.githubusercontent.com/13599213/188970331-442a5e7d-418b-480e-80c2-d5bd53672368.png">
+<img width="381" alt="Screen Shot 2022-09-07 at 1 24 19 PM" src="https://user-images.githubusercontent.com/13599213/188970331-442a5e7d-418b-480e-80c2-d5bd53672368.png"><br>
+<br>
 The average engagement score is: 0.0265<br>
 <br>
 Given that mean engagement rate is only 2.6%, the small coefficients are much more impactful than they appear. Sentiment has a huge impact, a single extra negative word (or a single fewer postitve ones) changing engagement rate at nearly double the magnitude of the average engagement rate.<br>
+<br>
 Let's apply this in an example to see what the best day to tweet is, holding all other variabeles at their mean values to show how this model could be used to make specific recommendations. <br><br>
 
 ```python
@@ -685,13 +675,13 @@ for item in range(0,7):
     l[item] = prediction
     print(f'day ' + str(item + 1) + ' has a predicted engagement rate of ' + str(prediction))
 ```
-day 1 has a predicted engagement rate of [0.02350074]<br>
+<em>day 1 has a predicted engagement rate of [0.02350074]<br>
 day 2 has a predicted engagement rate of [0.0243688]<br>
 day 3 has a predicted engagement rate of [0.02523687]<br>
 day 4 has a predicted engagement rate of [0.02610494]<br>
 day 5 has a predicted engagement rate of [0.02697301]<br>
 day 6 has a predicted engagement rate of [0.02784107]<br>
-day 7 has a predicted engagement rate of [0.02870914]<br>
+day 7 has a predicted engagement rate of [0.02870914]</em><br>
 <br>
 It looks like tweeting on a Sunday (day 7) has the highest engagement rate.<br>
 <br>
@@ -713,7 +703,7 @@ ax.set_xticklabels(data.columns)
 ax.set_yticklabels(data.columns)
 plt.show()
 ```
-<img width="390" alt="Screen Shot 2022-09-07 at 1 39 59 PM" src="https://user-images.githubusercontent.com/13599213/188973235-9fe87a6f-b5b3-4717-a024-6f4b2a0a3c93.png">
+<img width="390" alt="Screen Shot 2022-09-07 at 1 39 59 PM" src="https://user-images.githubusercontent.com/13599213/188973235-9fe87a6f-b5b3-4717-a024-6f4b2a0a3c93.png"><br>
 <br>
 or as a pairplot<br><br>
 
@@ -721,7 +711,7 @@ or as a pairplot<br><br>
 from seaborn import pairplot
 pairplot(data)
 ```
-<img src="https://user-images.githubusercontent.com/13599213/188973638-45046d89-3494-4593-a992-67c25c2be7c6.png">
+<img src="https://user-images.githubusercontent.com/13599213/188973638-45046d89-3494-4593-a992-67c25c2be7c6.png"><br>
 <br>
 It's a little hard to see, but this corresponds to what the model was telling us - sum_mentions is the only factor that clearly has a correlation with engagement rate.<br>
 <br>
