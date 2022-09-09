@@ -37,7 +37,6 @@ from sklearn import metrics
 from sklearn.metrics import accuracy_score
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import
-print(classification_report(y_test, count_nb_pred))
 ```
 Now we're ready to load the data. <br>
 
